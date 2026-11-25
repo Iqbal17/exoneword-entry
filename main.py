@@ -72,17 +72,39 @@ def check_gate(word):
         raise ValueError("entry must be exactly one word")
 
 
+# Decision record (short): "unsubscribe" was chosen over "ghosted" (too
+# obvious), "expired" (no punch) and "receipts" (needs a story to land).
+# The verdict is inside the word itself: the relationship was a
+# subscription and it has been cancelled — a twist, not an insult, and
+# instantly recognisable to anyone who has ever unsubscribed from anything.
+def validate_word(word):
+    """Gate guard: exactly one word, 1-111 chars, not only whitespace."""
+    check_gate(word)
+    if any(ch.isspace() for ch in word):
+        raise ValueError("entry must be exactly one word")
+    return word
+
+
 def entry_path():
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
     os.makedirs(out_dir, exist_ok=True)
     return os.path.join(out_dir, "entry.txt")
 
 
+def verify_written(path, word):
+    """Re-read the written entry and assert it matches the chosen word."""
+    with open(path, "r", encoding="utf-8") as f:
+        written = f.read()
+    if written != word + "\n":
+        raise ValueError("written entry does not match the chosen word")
+
+
 def main():
-    check_gate(WORD)
+    validate_word(WORD)
     path = entry_path()
     with open(path, "w", encoding="utf-8") as f:
         f.write(WORD + "\n")
+    verify_written(path, WORD)
 
 
 if __name__ == "__main__":
